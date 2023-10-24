@@ -19,10 +19,10 @@ package ca.uqac.lif.textidote.rules;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-
 import org.junit.Test;
 
 import ca.uqac.lif.textidote.Advice;
@@ -59,5 +59,18 @@ public class CheckLanguageTest
 		Rule r = new CheckLanguage(LanguageFactory.getLanguageFromString("en"), dict);
 		List<Advice> ad_list = r.evaluate(in_string);
 		assertEquals(0, ad_list.size());
-	}	
+	}
+	
+	@Test
+	public void testEnableRule() throws CheckLanguage.UnsupportedLanguageException
+	{
+		AnnotatedString in_string = AnnotatedString.read(new Scanner(CheckLanguageTest.class.getResourceAsStream("data/passive.tex")));
+		Rule r = new CheckLanguage(LanguageFactory.getLanguageFromString("en"));
+		List<Advice> ad_list = r.evaluate(in_string);
+		assertEquals(0, ad_list.size());
+		List<String> rules = Arrays.asList("E_PRIME_LOOSE");
+		r = new CheckLanguage(LanguageFactory.getLanguageFromString("en"), null, new ArrayList<String>(0), rules);
+		ad_list = r.evaluate(in_string);
+		assertEquals(2, ad_list.size());
+	}
 }

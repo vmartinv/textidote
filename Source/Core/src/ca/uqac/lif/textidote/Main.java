@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -203,6 +204,7 @@ public class Main
 		cli_parser.addArgument(new Argument().withLongName("ci").withDescription("Ignores the return code for CI usage"));
 		cli_parser.addArgument(new Argument().withLongName("encoding").withArgument("x").withDescription("Read files using encoding x"));
 		cli_parser.addArgument(new Argument().withLongName("single-file").withDescription("Don't read sub-files if any"));
+		cli_parser.addArgument(new Argument().withLongName("enabled-language-rules").withArgument("rules").withDescription("Enable specific LanguageTool rules"));
 
 		// Check if we are using textidote in a CI tool
 		boolean usingCI = false;
@@ -653,7 +655,11 @@ public class Main
 				{
 					try
 					{
-						CheckLanguage cl = new CheckLanguage(LanguageFactory.getLanguageFromString(lang_s), LanguageFactory.getLanguageFromString(firstlang_s), dictionary);
+						List<String> enabled_rules = null;
+						if(map.hasOption("enabled-language-rules")){
+							enabled_rules = Arrays.asList(map.getOptionValue("enabled-language-rules").split(","));
+						}
+						CheckLanguage cl = new CheckLanguage(LanguageFactory.getLanguageFromString(lang_s), LanguageFactory.getLanguageFromString(firstlang_s), dictionary, enabled_rules);
 						if (f_ngram_dir != null)
 						{
 							cl.activateLanguageModelRules(f_ngram_dir);

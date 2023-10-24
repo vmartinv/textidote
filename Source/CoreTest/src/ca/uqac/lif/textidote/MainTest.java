@@ -302,4 +302,20 @@ public class MainTest
 		// Check that the no break warning is present
 		assertTrue(output.indexOf("<span class=\"highlight")!=-1);
 	}
+
+	@Test
+	public void testEnabledLanguageRule() throws IOException
+	{
+		InputStream in = MainTest.class.getResourceAsStream("rules/data/passive.tex");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream out = new PrintStream(baos);
+		int ret_code = Main.mainLoop(new String[] {"--read-all", "--no-color", "--check", "en", "--enabled-language-rules", "E_PRIME_LOOSE", "--output", "singleline"}, in, out, new NullPrintStream());
+		String output = new String(baos.toByteArray());
+		System.err.println(output);
+		assertNotNull(output);
+		assertEquals(2, ret_code);
+		assertFalse(output.trim().isEmpty());
+		// Check that the intended rule is present
+		assertTrue(output.indexOf("avoiding the use of the stative verb 'to be'")!=-1);
+	}
 }

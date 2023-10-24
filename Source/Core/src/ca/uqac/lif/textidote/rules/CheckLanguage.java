@@ -76,10 +76,12 @@ public class CheckLanguage extends Rule
 	 * @param first_lang The first language of the author.
 	 * Used by LanguageTool to check for false friends.
 	 * @param dictionary A set of words that should be ignored by
-	 * spell checking
+	 * spell checking.
+	 * @param enabled_rules A set of rules that should be enabled by
+	 * spell checking.
 	 * @throws UnsupportedLanguageException If {@code lang} is null
 	 */
-	public CheckLanguage(/*@ nullable @*/ Language lang, /*@ nullable @*/ Language first_lang, /*@ non_null @*/ List<String> dictionary) throws UnsupportedLanguageException
+	public CheckLanguage(/*@ nullable @*/ Language lang, /*@ nullable @*/ Language first_lang, /*@ non_null @*/ List<String> dictionary, /*@ nullable @*/ List<String> enabled_rules) throws UnsupportedLanguageException
 	{
 		super("lt:");
 		if (lang == null)
@@ -98,6 +100,11 @@ public class CheckLanguage extends Rule
 		if (m_disableWhitespace)
 		{
 			m_languageTool.disableRule("WHITESPACE_RULE");
+		}
+		if(enabled_rules != null){
+			for(String rule_id : enabled_rules){
+				m_languageTool.enableRule(rule_id);
+			}
 		}
 		m_dictionary = dictionary;
 		handleUserDictionary();
@@ -124,7 +131,7 @@ public class CheckLanguage extends Rule
 	 */
 	public CheckLanguage(/*@ nullable @*/ Language lang, /*@ non_null @*/ List<String> dictionary) throws UnsupportedLanguageException
 	{
-		this(lang, null, dictionary);
+		this(lang, null, dictionary, null);
 	}
 
 	/**
