@@ -244,7 +244,7 @@ public class LatexCleaner extends TextCleaner
 	 */
 	protected boolean isEnvironmentStart(/*@ non_null @*/ String line)
 	{
-		if (line.matches(".*\\\\begin\\s*\\{\\s*(align|displaymath|equation|table|tabular|verbatim|lstlisting|IEEEkeywords|figure|wrapfigure|eqnarray|gather|flalign|multline).*"))
+		if (line.matches(".*\\\\begin\\s*\\{\\s*(align|displaymath|equation|table|tabular|verbatim|lstlisting|IEEEkeywords|wrapfigure|eqnarray|gather|flalign|multline).*"))
 		{
 			return true;
 		}
@@ -268,7 +268,7 @@ public class LatexCleaner extends TextCleaner
 	 */
 	protected boolean isEnvironmentEnd(/*@ non_null @*/ String line)
 	{
-		if (line.matches(".*\\\\end\\s*\\{\\s*(align|equation|table|tabular|verbatim|lstlisting|IEEEkeywords|figure|wrapfigure|eqnarray|gather|flalign|multline).*"))
+		if (line.matches(".*\\\\end\\s*\\{\\s*(align|equation|table|tabular|verbatim|lstlisting|IEEEkeywords|wrapfigure|eqnarray|gather|flalign|multline).*"))
 		{
 			return true;
 		}
@@ -346,11 +346,11 @@ public class LatexCleaner extends TextCleaner
 		as_out = as_out.replaceAll("\\\\\\\\", "");
 		as_out = as_out.replaceAll("\\\\par(\\b)", "$1");
 		// Common environments
-		as_out = as_out.replaceAll("\\\\(begin|end)\\{(itemize|enumerate|inparaenum|document|thm|abstract|compactitem|query|center|minipage|quote|frame)\\}", "");
+		as_out = as_out.replaceAll("\\\\(begin|end)\\{(itemize|enumerate|description|figure|inparaenum|document|thm|abstract|compactitem|query|center|minipage|quote|frame)\\}", "");
 		// List items
 		as_out = as_out.replaceAll("\\\\item\\s*", "");
-		// Images
-		as_out = as_out.replaceAll("\\\\includegraphics.*$", "");
+		// Images (ignore)
+		as_out = as_out.replaceAll("\\\\includegraphics\\{.*?\\}", "");
 		// Commands that don't produce text
 		as_out = as_out.replaceAll("\\\\(label)\\{[^\\}]*?\\}", "");
 		// Footnotes (ignore)

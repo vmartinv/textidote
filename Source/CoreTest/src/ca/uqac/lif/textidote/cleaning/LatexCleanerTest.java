@@ -305,6 +305,24 @@ public class LatexCleanerTest
 	}
 	
 	@Test
+	public void testIgnoreDescription() throws TextCleanerException
+	{
+		LatexCleaner detexer = new LatexCleaner();
+		detexer.setIgnoreBeforeDocument(false);
+		AnnotatedString as = detexer.clean(AnnotatedString.read(new Scanner("test:\n\\begin{description}\\item[First item] First sentence.\\end{description}")));
+		assertEquals("test:\n[First item] First sentence.", as.toString());
+	}
+	
+	@Test
+	public void testCleanFigure() throws TextCleanerException
+	{
+		LatexCleaner detexer = new LatexCleaner();
+		detexer.setIgnoreBeforeDocument(false);
+		AnnotatedString as = detexer.clean(AnnotatedString.read(new Scanner(LatexCleanerTest.class.getResourceAsStream("data/figure.tex"))));
+		assertEquals("\n\nSentence to check for tyypos.\n\n", as.toString());
+	}
+	
+	@Test
 	public void testRemoveLabels1() throws TextCleanerException
 	{
 		LatexCleaner detexer = new LatexCleaner();

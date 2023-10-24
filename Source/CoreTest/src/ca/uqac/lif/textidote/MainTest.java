@@ -331,8 +331,9 @@ public class MainTest
 		// Check that the desired sections are present
 		assertTrue(output.indexOf("child section")!=-1);
 		assertTrue(output.indexOf("child sibling section")!=-1);
-  }
+	}
   
+	@Test
 	public void testBeamerFile() throws IOException
 	{
 		InputStream in = MainTest.class.getResourceAsStream("rules/data/beamer.tex");
@@ -349,5 +350,24 @@ public class MainTest
 		assertEquals(2, lines.length);
 		assertTrue(lines[0].indexOf("Beneficial")!=-1);
 		assertTrue(lines[1].indexOf("travelling")!=-1);
+	}
+
+	@Test
+	public void testFigure() throws IOException
+	{
+		InputStream in = MainTest.class.getResourceAsStream("rules/data/figure.tex");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream out = new PrintStream(baos);
+		int ret_code = Main.mainLoop(new String[] {"--read-all", "--check", "en", "--no-color", "--output", "singleline"}, in, out, System.err);
+		String output = new String(baos.toByteArray());
+		assertNotNull(output);
+		System.err.println(output);
+		// Check that the correct number of warnings are generated
+		assertEquals(1, ret_code);
+		// Check that the warning suggests the correct word
+		assertFalse(output.trim().isEmpty());
+		String[] lines = output.split("\n");
+		assertEquals(1, lines.length);
+		assertTrue(lines[0].indexOf("typos")!=-1);
 	}
 }
