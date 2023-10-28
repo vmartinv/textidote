@@ -408,7 +408,16 @@ public class Main
 					{
 						// LaTeX file
 						String cur_dir = calculateCurrentDir(filename);
-						LatexCleaner latex_cleaner = new LatexCleaner(cur_dir, map.getOptionValue("root"));
+						LatexCleaner latex_cleaner;
+						// Expand includes when cleaning (unless --single-file was specified)
+						if (single_file)
+						{
+							latex_cleaner = new LatexCleaner(cur_dir, map.getOptionValue("root"));
+						}
+						else
+						{
+							latex_cleaner = new LatexCleaner(cur_dir, map.getOptionValue("root"), encoding);
+						}
 						latex_cleaner.setIgnoreBeforeDocument(!read_all);
 						latex_cleaner.ignoreEnvironments(env_blacklist);
 						latex_cleaner.ignoreMacros(mac_blacklist);

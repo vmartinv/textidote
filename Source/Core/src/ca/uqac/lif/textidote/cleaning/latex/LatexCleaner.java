@@ -22,8 +22,10 @@ import ca.uqac.lif.textidote.as.Match;
 import ca.uqac.lif.textidote.as.AnnotatedString.Line;
 import ca.uqac.lif.textidote.cleaning.TextCleaner;
 import ca.uqac.lif.textidote.cleaning.TextCleanerException;
+import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.io.File;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -65,6 +67,11 @@ public class LatexCleaner extends TextCleaner
 	protected Path m_rootDir;
 
 	/**
+	 * Encoding to use when expanding includes (or null for not expanding)
+	 */
+	protected final String m_includeEncoding;
+
+	/**
 	 * A list of <em>non-commented</em> <code>input</code> and <code>include</code>
 	 * declarations found in the file to be cleaned.
 	 */
@@ -85,12 +92,24 @@ public class LatexCleaner extends TextCleaner
 	 * Creates a new instance of the cleaner
 	 * @param cur_dir Path to the location of the file to clean
 	 * @param root_dir Path to the root tex file if known
+	 * @param include_encoding Encoding to use when expanding includes (use null for not expanding)
 	 */
-	public LatexCleaner(/*@ non_null @*/ String cur_dir, /*@ nullable @*/ String root_dir)
+	public LatexCleaner(/*@ non_null @*/ String cur_dir, /*@ nullable @*/ String root_dir, /*@ nullable @*/ String include_encoding)
 	{
 		super();
 		m_curDir = Paths.get(cur_dir);
 		m_rootDir = root_dir == null ? null : Paths.get(root_dir).getParent();
+		m_includeEncoding = include_encoding;
+	}
+
+	/**
+	 * Creates a new instance of the cleaner
+	 * @param cur_dir Path to the location of the file to clean
+	 * @param root_dir Path to the root tex file if known
+	 */
+	public LatexCleaner(/*@ non_null @*/ String cur_dir, /*@ nullable @*/ String root_dir)
+	{
+		this(cur_dir, root_dir, null);
 	}
 
 	/**
@@ -165,6 +184,7 @@ public class LatexCleaner extends TextCleaner
 		new_as = removeEnvironments(new_as);
 		new_as = removeMacros(new_as);
 		fetchIncludes(new_as);
+		new_as = expandIncludes(new_as);
 		//new_as = removeAllMarkup(new_as);
 		new_as = removeMarkup(new_as);
 		//new_as = simplifySpaces(new_as);
@@ -605,6 +625,59 @@ public class LatexCleaner extends TextCleaner
 				m_innerFiles.add(filepath.toString());
 			}
 		}
+	}
+
+	/**
+	 * Replaces all <em>non-commented</em> <code>input</code> and
+	 * <code>include</code> declarations with the cleaned contents
+	 * of the files.
+	 * @param as The contents of the file (where environments and
+	 * comments have already been removed).
+	 * @return The content of the file with the includes replaced with their content
+	 */
+	protected AnnotatedString expandIncludes(/*@ non_null @*/ AnnotatedString as)
+	{
+		if(m_includeEncoding == null){
+			return as;
+		}
+		Boolean ignoreDocSavedState = m_ignoreBeforeDocument;
+		// We need to ignore `\begin{document}` when expanding includes
+		setIgnoreBeforeDocument(false);
+		AnnotatedString as_out = new AnnotatedString(as);
+		for (Line l : as.getLines())
+		{
+			String line = l.toString();
+			Matcher mat = m_includePattern.matcher(line);
+			if (mat.find())
+			{
+				String filename = mat.group(2).trim();
+				if (!filename.endsWith(".tex"))
+				{
+					filename += ".tex";
+				}
+				String sInner;
+				try{
+					String filepath = m_rootDir.resolve(Paths.get(filename)).toString();
+					Scanner scannerInner = new Scanner(new File(filepath), m_includeEncoding);
+					AnnotatedString asInner = AnnotatedString.read(scannerInner);
+					asInner.setResourceName(filepath);
+					// Run the corresponding cleaning steps on the inner file
+					asInner = cleanComments(asInner);
+					asInner = removeEnvironments(asInner);
+					asInner = removeMacros(asInner);
+					asInner = expandIncludes(asInner);
+					// Since include expansion is done only in `--clean` mode
+					// we don't care about tracking the input mappings here:
+					sInner = asInner.toString();
+				}
+				catch (FileNotFoundException ex){
+					sInner = mat.group(0) + "    % Error reading file";
+				}
+				as_out.replace(Pattern.quote(mat.group(0)), sInner, l.getOffset());
+			}
+		}
+		setIgnoreBeforeDocument(ignoreDocSavedState);
+		return as_out;
 	}
 
 	/**

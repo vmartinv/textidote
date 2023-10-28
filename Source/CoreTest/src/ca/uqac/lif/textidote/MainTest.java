@@ -366,4 +366,40 @@ public class MainTest
 		assertTrue(lines[0].indexOf("Beneficial")!=-1);
 		assertTrue(lines[1].indexOf("travelling")!=-1);
 	}
+
+	@Test
+	public void testExpandIncludes() throws IOException
+	{
+		File root_file = new File(MainTest.class.getResource("rules/data/root.tex").getFile());
+		String root_path = root_file.getAbsolutePath();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream out = new PrintStream(baos);
+		int ret_code = Main.mainLoop(new String[] {"--clean", root_path}, null, out, new NullPrintStream(), MainTest.class);
+		String output = new String(baos.toByteArray());
+		assertNotNull(output);
+		assertEquals(0, ret_code);
+		assertFalse(output.trim().isEmpty());
+		// Check that the desired sections are present
+		assertTrue(output.indexOf("Introduction")!=-1);
+		assertTrue(output.indexOf("child section")!=-1);
+		assertTrue(output.indexOf("child sibling section")!=-1);
+	}
+
+	@Test
+	public void testExpandIncludesWithSingleFile() throws IOException
+	{
+		File root_file = new File(MainTest.class.getResource("rules/data/root.tex").getFile());
+		String root_path = root_file.getAbsolutePath();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream out = new PrintStream(baos);
+		int ret_code = Main.mainLoop(new String[] {"--single-file", "--clean", root_path}, null, out, new NullPrintStream(), MainTest.class);
+		String output = new String(baos.toByteArray());
+		assertNotNull(output);
+		assertEquals(0, ret_code);
+		assertFalse(output.trim().isEmpty());
+		// Check that the desired sections are present (or not)
+		assertTrue(output.indexOf("Introduction")!=-1);
+		assertEquals(-1, output.indexOf("child section"));
+		assertEquals(-1, output.indexOf("child sibling section"));
+	}
 }
