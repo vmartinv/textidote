@@ -71,4 +71,17 @@ public class PositionTest
 		assertNotNull(s);
 		assertTrue(s.length() > 0);
 	}
+	
+	@Test
+	public void testEquals()
+	{
+		Position p1 = new Position(1, 0);
+		Position p2 = new Position(1, 1);
+		Position p3 = new Position(0, 0);
+		assertFalse(p1.equals(null));
+		assertFalse(p1.equals(1));
+		assertTrue(p1.equals(p1));
+		assertFalse(p1.equals(p2));
+		assertFalse(p1.equals(p3));
+	}
 }

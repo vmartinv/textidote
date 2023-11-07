@@ -85,7 +85,7 @@ public class Position implements Comparable<Position>
 	@Override
 	public int hashCode()
 	{
-		return m_line * m_column;
+		return toString().hashCode();
 	}
 
 	@Override

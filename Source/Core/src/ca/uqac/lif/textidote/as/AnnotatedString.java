@@ -402,11 +402,8 @@ public class AnnotatedString implements ExplanationQueryable
 			{
 				break;
 			}
-			if (next_pos < s.length())
-			{
-				pos = next_pos + CRLF_S;
-				line++;
-			}
+			pos = next_pos + CRLF_S;
+			line++;
 		}
 		if (line != line_nb)
 		{
@@ -464,11 +461,8 @@ public class AnnotatedString implements ExplanationQueryable
 				m_lines.add(new Line(m_string.substring(pos), pos));
 				break;
 			}
-			if (next_pos < m_string.length())
-			{
-				m_lines.add(new Line(m_string.substring(pos, next_pos), pos));
-				pos = next_pos + CRLF_S;
-			}
+			m_lines.add(new Line(m_string.substring(pos, next_pos), pos));
+			pos = next_pos + CRLF_S;
 		}
 		return m_lines;
 	}
@@ -476,7 +470,7 @@ public class AnnotatedString implements ExplanationQueryable
 	/**
 	 * Trims a line of the string from a given position
 	 * @param index The position. All characters on the same line,
-	 * starting from this position on to the end of the string,
+	 * starting from this position on to the end of the line,
 	 * will be removed.
 	 * @return This string
 	 */
@@ -520,16 +514,11 @@ public class AnnotatedString implements ExplanationQueryable
 	/*@ pure @*/ public int findOriginalIndex(int index)
 	{
 		List<Range> ranges = trackToInput(index, index);
-		int src_index = -1;
-		for (Range r : ranges)
-		{
-			int i = r.getStart();
-			if (src_index < 0 || i < src_index)
-			{
-				src_index = i;
-			}
+		if(ranges.isEmpty()){
+			return -1;
 		}
-		return src_index;
+		// Since track to input gives a sorted range the first one will be the lowest index
+		return ranges.get(0).getStart();
 	}
 
 	/**
@@ -672,7 +661,7 @@ public class AnnotatedString implements ExplanationQueryable
 	/*@ pure null @*/ public Range findOriginalRange(Range r)
 	{
 		List<Range> ranges = trackToInput(r);
-		return uniteRanges(ranges);
+		return uniteSortedRanges(ranges);
 	}
 
 	/**
@@ -700,7 +689,7 @@ public class AnnotatedString implements ExplanationQueryable
 	/*@ pure null @*/ public Range findCurrentRange(Range r)
 	{
 		List<Range> ranges = trackToOutput(r);
-		return uniteRanges(ranges);
+		return uniteSortedRanges(ranges);
 	}
 	
 	/**
@@ -870,7 +859,7 @@ public class AnnotatedString implements ExplanationQueryable
 			return root;
 		}
 		Range r = (Range) part;
-		List<Range> ranges = m_mapping.trackToInput(r);
+		List<Range> ranges = trackToInput(r);
 		if (ranges.isEmpty())
 		{
 			root.addChild(factory.getPartNode(Part.nothing, this));
@@ -999,25 +988,23 @@ public class AnnotatedString implements ExplanationQueryable
 	 * @param ranges The list of ranges
 	 * @return The range encompassing them all
 	 */
-	/*@ null @*/ protected static Range uniteRanges(/*@ non_null @*/ List<Range> ranges)
+	/*@ null @*/ protected static Range uniteSortedRanges(/*@ non_null @*/ List<Range> ranges)
 	{
-		int left = -1, right = -1;
-		for (Range i_r : ranges)
-		{
-			if (left < 0 || left > i_r.getStart())
-			{
-				left = i_r.getStart();
-			}
-			if (right < 0 || right < i_r.getEnd())
-			{
-				right = i_r.getEnd();
-			}
-		}
-		if (left < 0 || right < 0)
-		{
+		if(ranges.isEmpty()){
 			return null;
 		}
-		return new Range(left, right);
+		// First range has the lowest start
+		int start = ranges.get(0).getStart();
+		int end = ranges.get(0).getEnd();
+		// Extend end with the highest ending among ranges
+		for (Range i_r : ranges)
+		{
+			if (end < i_r.getEnd())
+			{
+				end = i_r.getEnd();
+			}
+		}
+		return new Range(start, end);
 	}
 	
 	/**

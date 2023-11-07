@@ -53,7 +53,13 @@ class RangeFetcher extends Crawler
 		if (isLeaf(n))
 		{
 			Part p = ((PartNode) n).getPart();
-			Range r = Range.mentionedRange(p);
+			Range r;
+			if(p instanceof Range){
+				r = (Range)p;
+			}
+			else{
+				r = Range.mentionedRange(p);
+			}
 			if (r != null)
 			{
 				m_ranges.add(r);

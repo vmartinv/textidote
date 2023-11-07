@@ -89,5 +89,22 @@ public class PositionRange implements Comparable<PositionRange>
 		}
 		return 1;
 	}
+
+	@Override
+	public int hashCode()
+	{
+		return m_start.hashCode() * m_end.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object o)
+	{
+		if (o == null || !(o instanceof PositionRange))
+		{
+			return false;
+		}
+		PositionRange pr = (PositionRange) o;
+		return pr.m_start.equals(m_start) && pr.m_end.equals(m_end);
+	}
 }
 
